@@ -19,10 +19,10 @@ t_bins= [np.min(t) + t_diff*i for i in range(1, n_bins)]
 w_diff= (np.max(w) - np.min(w))/n_bins
 w_bins= [np.min(w) + w_diff*i for i in range(1, n_bins)]
 
-plt.figure(figsize=(7, 2.5))
+plt.figure(figsize=(6, 3))
 plt.scatter(t, w)
-plt.xlabel('t')
-plt.ylabel('w')
+plt.xlabel('$\mathbf{t}$')
+plt.ylabel('$\mathbf{w}$')
 plt.title('Illustration of MTM')
 
 plt.vlines(t_bins, np.min(w), np.max(w))
@@ -45,7 +45,9 @@ for i in range(len(w_means)):
         bin_max= t_bins[i]
     print(w_means[i], bin_min, bin_max)
     plt.hlines(w_means[i], bin_min, bin_max, colors='red')
-plt.show()
+
+plt.tight_layout()
+plt.savefig('binning_MTM.pdf')
 
 plt.figure(figsize=(7, 2.5))
 plt.scatter(t, w)
