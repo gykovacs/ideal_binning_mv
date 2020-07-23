@@ -63,3 +63,11 @@ Remarks
 
 1) The execution time with the default settings in ```config.py``` is about 5 hours on an average computer.
 2) The codes might run with different package configurations than the ones specified in ```requirements.txt```, however, due to possible changes in the pseudo-number generators, other package configurations might give slightly different results.
+
+Raw simulation results
+---
+
+The raw results of the simulations are available for download at the following links:
+
+1) general distortions: https://drive.google.com/file/d/1Y8IOEfRe_WW9NwSUxQjMoBQpRwnmx2gN/view?usp=sharing
+2) spherical distortions: https://drive.google.com/file/d/1VQd3iN6uMyERHXIbrf21epBs7i59T5PF/view?usp=sharing
