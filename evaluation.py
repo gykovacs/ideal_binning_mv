@@ -158,8 +158,8 @@ print(p.to_latex())
 
 for i, b0 in enumerate(binning_methods):
     for j, b1 in enumerate(binning_methods):
-        a= results_general[b0 + '_hits'].values
-        b= results_general[b1 + '_hits'].values
+        a= results_spherical[b0 + '_hits'].values
+        b= results_spherical[b1 + '_hits'].values
 
         for k in [0, 1]:
             for l in [0, 1]:
@@ -170,5 +170,5 @@ for i, b0 in enumerate(binning_methods):
 pd.options.display.float_format = '{:.1e}'.format
 p= pd.DataFrame(np.vstack([p_matrix_greedy, means]), columns= ['EQW', 'EQF', 'k-means', 'greedy'], index=['EQW', 'EQF', 'k-means', 'greedy', 'accuracy']).fillna(1)
 
-print("the matrix of p-values and mean AUCs for general distortions with mcnemar test")
+print("the matrix of p-values and mean AUCs for spherical distortions with mcnemar test")
 print(p.to_latex())
