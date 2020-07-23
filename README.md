@@ -61,7 +61,7 @@ It is assumed that ```git``` and ```Anaconda``` are installed and properly confi
 Remarks
 ---
 
-1) The execution time with the default settings in ```config.py``` is about 5 hours on an average computer.
+1) The execution time with the default settings in ```config.py``` is about 10 hours on an average computer.
 2) The codes might run with different package configurations than the ones specified in ```requirements.txt```, however, due to possible changes in the pseudo-number generators, other package configurations might give slightly different results.
 
 Raw simulation results
