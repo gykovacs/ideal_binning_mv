@@ -1,4 +1,4 @@
-Repository containing the codes for the evaluation of the ideal binning techniques for the piecewise constant approximation of the normalized Unexplained Variance (nUV) measure
+Evaluation of the ideal binning techniques for the piecewise constant approximation of the normalized Unexplained Variance (nUV) measure
 ===
 
 Contents
