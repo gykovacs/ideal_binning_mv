@@ -8,8 +8,6 @@ from binning import *
 from data_generation import *
 from nuv import *
 
-np.random.seed(random_seed)
-
 def simulation(spherical=False,
                d_lower=d_lower,
                d_upper=d_upper,
@@ -19,7 +17,8 @@ def simulation(spherical=False,
                sigma_m_upper=sigma_m_upper,
                bins=bins,
                binning_methods= binning_methods,
-               n_trials=n_trials):
+               n_trials=n_trials,
+               random_seed=random_seed):
     """
     The function implementing the numerical simulations
 
@@ -38,6 +37,9 @@ def simulation(spherical=False,
     Returns:
         pd.DataFrame: the results of the simulation
     """
+
+    # fixing the random seed
+    np.random.seed(random_seed)
 
     # initialization
     exact_noise, exact_distortion, exact_kmeans= [], [], []
@@ -172,14 +174,14 @@ def main():
     #######################
 
     results_general= simulation(spherical=False)
-    results_general.to_csv(os.path.concat(work_dir, 'results_general.csv'), index=False)
+    results_general.to_csv(os.path.join(work_dir, 'results_general.csv'), index=False)
 
     #########################
     # Spherical distortions #
     #########################
 
     results_spherical= simulation(spherical=True)
-    results_spherical.to_csv(os.path.concat(work_dir, 'results_spherical.csv'), index=False)
+    results_spherical.to_csv(os.path.join(work_dir, 'results_spherical.csv'), index=False)
 
 
 if __name__ == "__main__":

@@ -13,10 +13,7 @@ def unique_binning(t):
     Returns:
         np.array: the unique binning vector
     """
-    diff= np.unique(t)
-    diff= diff[1:] - diff[:-1]
-    diff = np.min(diff)/2
-    return np.digitize(t, np.hstack([np.unique(t) + diff]))
+    return np.digitize(t, np.unique(t), right=True)
 
 def eqw_binning(t, n_bins):
     """
@@ -56,7 +53,7 @@ def eqf_binning(t, n_bins):
     t_binning= np.digitize(t, t_bins)
     return t_binning
 
-def kmeans_binning(t, n_bins, n_trials=20):
+def kmeans_binning(t, n_bins, n_trials=5):
     """
     Carries out kmeans binning
     
@@ -70,6 +67,7 @@ def kmeans_binning(t, n_bins, n_trials=20):
     """
     best_clustering = None
     best_score = None
+    best_centers = None
     
     for _ in range(n_trials):
         kmeans= KMeans(n_clusters=n_bins, random_state= np.random.randint(100))
@@ -78,20 +76,16 @@ def kmeans_binning(t, n_bins, n_trials=20):
         if best_score is None or score > best_score:
             best_score= score
             best_clustering= kmeans.labels_
+            best_centers= kmeans.cluster_centers_
     
-    clusters= np.unique(best_clustering)
-    for i in range(len(clusters)):
-        for j in range(i+1, len(clusters)):
-            if np.mean(t[best_clustering == clusters[i]]) > np.mean(t[best_clustering == clusters[j]]):
-                tmp_clustering= best_clustering.copy()
-                tmp_clustering[best_clustering == clusters[j]]= clusters[i]
-                tmp_clustering[best_clustering == clusters[i]]= clusters[j]
-                best_clustering= tmp_clustering
+    sorted_centers= sorted(zip(np.arange(len(best_centers)), best_centers), key=lambda x: x[1])
+    clusters= {}
+    for i in range(n_bins):
+        clusters[i]= best_clustering == i
     
-    means= []
-    for i in np.unique(best_clustering):
-        means.append(np.mean(t[best_clustering == i]))
-    
+    for i, (j, _) in enumerate(sorted_centers):
+        best_clustering[clusters[j]]= i
+
     return best_clustering
 
 def block_sum(i, bins, C, n_tau):

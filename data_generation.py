@@ -80,6 +80,15 @@ def generate_n_tau(t):
     return np.unique(t, return_counts=True)[1]
 
 def generate_tau(t):
+    """
+    Generates the tau vector of unique elements
+
+    Args:
+        t (np.array): a template vector
+    
+    Returns:
+        np.array: the tau vector
+    """
     return np.unique(t)
 
 def generate_S_tau(t):
