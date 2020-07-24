@@ -19,7 +19,7 @@ t_bins= [np.min(t) + t_diff*i for i in range(1, n_bins)]
 w_diff= (np.max(w) - np.min(w))/n_bins
 w_bins= [np.min(w) + w_diff*i for i in range(1, n_bins)]
 
-plt.figure(figsize=(6, 3))
+plt.figure(figsize=(5, 2.66))
 plt.scatter(t, w)
 plt.xlabel('$\mathbf{t}$')
 plt.ylabel('$\mathbf{w}$')

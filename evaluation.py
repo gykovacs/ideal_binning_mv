@@ -12,7 +12,7 @@ from config import *
 results_general = pd.read_csv(os.path.join(work_dir, 'results_general.csv'))
 results_spherical = pd.read_csv(os.path.join(work_dir, 'results_spherical.csv'))
 
-figsize= (6, 4)
+figsize= (5.5, 3.3)
 
 #######################
 # general distortions #
