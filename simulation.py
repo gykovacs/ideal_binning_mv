@@ -1,12 +1,15 @@
 import os
 import tqdm
 import pandas as pd
+import time
 
 from config import *
 
 from binning import *
 from data_generation import *
 from nuv import *
+
+from sklearn.feature_selection import mutual_info_regression
 
 def simulation(spherical=False,
                d_lower=d_lower,
@@ -45,11 +48,20 @@ def simulation(spherical=False,
     exact_noise, exact_distortion, exact_kmeans= [], [], []
     d_noise, d_distortion, hits= {}, {}, {}
     ds, bs, b_mods, sigmas, sigma_ms= [], [], [], [], []
+    runtimes= {}
+    steps= []
+    uniques= []
+    ids= []
     
     for binning in binning_methods:
         d_noise[binning]= []
         d_distortion[binning]= []
         hits[binning]= []
+        runtimes[binning]= []
+    
+    for m in mi_n_neighbors_simulation:
+        hits['mi_' + str(m)]= []
+        runtimes['mi_' + str(m)]= []
 
     pbar = tqdm.tqdm(total=n_trials)   
     n_tests= 0
@@ -67,6 +79,8 @@ def simulation(spherical=False,
         
         # generating a template
         t= generate_t(d, spherical)
+        
+        d_tau= len(np.unique(t))
 
         # generating a covariance structure
         C= generate_C(t, spherical, sigma_m)
@@ -79,35 +93,65 @@ def simulation(spherical=False,
         cross_product= C + np.outer(distortion_mean, distortion_mean)
         A= None
         
-        for b in bins:
-            # for all number of bins specified
+        # generating a noisy window
+        w_noise= generate_noisy_window(d, sigma)
 
+        # generating a distorted template
+        w_distorted= generate_distorted_t(t, C, distortion_mean, sigma)
+        
+        for b in bins:
             # determining the true number of bins
             b_mod= n_bins(t, b)
             
             binnings= []
-            for binning in binning_methods:
+            
+            for i, binning_method in enumerate(binning_methods):
                 # for all binning methods carry out the binning
-                if binning == 'eqw':
+                start_time= time.time()
+                if binning_method == 'eqw':
                     t_binning = eqw_binning(t, b_mod)
-                elif binning == 'eqf':
+                elif binning_method == 'eqf':
                     t_binning = eqf_binning(t, b_mod)
-                elif binning == 'kmeans':
+                elif binning_method == 'kmeans':
                     t_binning = kmeans_binning(t, b_mod)
-                elif binning == 'greedy':
-                    t_binning = greedy_binning(t, cross_product, b_mod)
+                elif binning_method == 'distortion_aligned':
+                    t_binning, iterations = distortion_aligned_binning(t, cross_product, b_mod, return_it=True)
                     A= generate_A_from_binning(t_binning)
-                if len(np.unique(t_binning)) != b_mod:
-                    # skipping the case if the template is such that the
-                    # binning fails (EQW, because not all bins will contain at
-                    # least one element which is a requirement for MTM)
-                    break
+                    
                 binnings.append(t_binning)
+                mtm_noise= pwc_nuv(t, w_noise, binnings[i])
+                mtm_distorted= pwc_nuv(t, w_distorted, binnings[i])
+                end_time= time.time()
+                
+                # record the dissimilarity scores
+                d_noise[binning_method].append(mtm_noise)
+                d_distortion[binning_method].append(mtm_distorted)
+                runtimes[binning_method].append(end_time - start_time)
+                
+                # record the hit for pattern recognition
+                if mtm_noise > mtm_distorted:
+                    hits[binning_method].append(1)
+                else:
+                    hits[binning_method].append(0)
+            
+            for n_neighbors in mi_n_neighbors_simulation:
+                start_time= time.time()    
+                mi_noise= mutual_info_regression(w_noise.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]
+                mi_distorted= mutual_info_regression(w_distorted.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]
+                end_time= time.time()
+                
+                if mi_noise < mi_distorted:
+                    hits['mi_' + str(n_neighbors)].append(1)
+                else:
+                    hits['mi_' + str(n_neighbors)].append(0)
+                    
+                runtimes['mi_' + str(n_neighbors)].append(end_time - start_time)
+                
             
             if len(binnings) != len(binning_methods):
                 # if any of the binnings did not succeed (EQW), continue with
                 # the next test case
-                continue
+                raise ValueError("this cannot happen now")
             
             # recording the dimensionality, the binning, the true number
             # of bins and the standard deviations of the noises
@@ -116,28 +160,10 @@ def simulation(spherical=False,
             b_mods.append(b_mod)
             sigmas.append(sigma)
             sigma_ms.append(sigma_m)
+            steps.append(iterations)
+            uniques.append(d_tau)
+            ids.append(n_tests)
         
-            # generating a noisy window
-            w_noise= generate_noisy_window(d, sigma)
-
-            # generating a distorted template
-            w_distorted= generate_distorted_t(t, C, distortion_mean, sigma)
-                
-            for i, binning_method in enumerate(binning_methods):
-                # for each binning compute the dissimilarity scores
-                mtm_noise= pwc_nuv(t, w_noise, binnings[i])
-                mtm_distorted= pwc_nuv(t, w_distorted, binnings[i])
-                
-                # record the dissimilarity scores
-                d_noise[binning_method].append(mtm_noise)
-                d_distortion[binning_method].append(mtm_distorted)
-                
-                # record the hit for pattern recognition
-                if mtm_noise > mtm_distorted:
-                    hits[binning_method].append(1)
-                else:
-                    hits[binning_method].append(0)
-            
             # record the exact values
             exact_noise.append(exact_nuv_noise(d, b_mod))
             exact_distortion.append(exact_nuv_general(cross_product, t, A, sigma, b_mod))
@@ -159,12 +185,19 @@ def simulation(spherical=False,
                            'sigma_m': sigma_ms,
                            'exact_noise': exact_noise,
                            'exact_distortion': exact_distortion,
-                           'exact_kmeans': exact_kmeans})
+                           'exact_kmeans': exact_kmeans,
+                           'steps': steps,
+                           'd_tau': uniques,
+                           'id': ids})
     
     for b in binning_methods:
         results[b + '_noise']= d_noise[b]
         results[b + '_distorted']= d_distortion[b]
         results[b + '_hits']= hits[b]
+        results[b + '_runtime']= runtimes[b]
+    for m in mi_n_neighbors_simulation:
+        results['mi_' + str(m) + '_hits']= hits['mi_' + str(m)]
+        results['mi_' + str(m) + '_runtime']= runtimes['mi_' + str(m)]
     
     return results
 

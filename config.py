@@ -5,7 +5,7 @@ work_dir='.'
 random_seed=5
 
 # number of trials
-n_trials=5000
+n_trials=10000
 
 # lower and upper bounds of the dimensionality
 d_lower=100
@@ -23,4 +23,12 @@ sigma_m_upper=2.0
 bins=[2, 5, 'square-root', 'sturges-formula', 'rice-rule']
 
 # binning methods
-binning_methods= ['eqw', 'eqf', 'kmeans', 'greedy']
+binning_methods= ['eqw', 'eqf', 'kmeans', 'distortion_aligned']
+
+# mutual information n_neighbors
+mi_n_neighbors_simulation= [3, 7, 11, 21, 31, 41, 51]
+mi_n_neighbors_feature_selection= [3, 7, 11, 21, 31]
+
+# feature selection 
+fs_n_repeats= 20
+fs_n_splits= 5

@@ -26,8 +26,6 @@ print('relative variation for noisy window', abs(grouped[('exact_noise', 'mean')
 print('relative variation for distorted template (general distortion)', abs(grouped[('exact_distortion', 'mean')] - grouped[('greedy_distorted', 'mean')])/grouped[('greedy_distorted', 'mean')])
 
 fig, ax= plt.subplots(figsize=figsize)
-
-fig, ax= plt.subplots(figsize=figsize)
 trans0= Affine2D().translate(-0.08, 0.0) + ax.transData
 trans1= Affine2D().translate(-0.04, 0.0) + ax.transData
 trans2= Affine2D().translate(-0.0, 0.0) + ax.transData
@@ -52,6 +50,9 @@ plt.plot(np.arange(len(grouped)), grouped[('eqw_hits', 'mean')], label='EQW binn
 plt.plot(np.arange(len(grouped)), grouped[('eqf_hits', 'mean')], label='EQF binning', linewidth=2.0, linestyle='-.')
 plt.plot(np.arange(len(grouped)), grouped[('kmeans_hits', 'mean')], label='k-means binning', linestyle='--', linewidth=2.0)
 plt.plot(np.arange(len(grouped)), grouped[('greedy_hits', 'mean')], label='greedy binning', linewidth=2.0, linestyle=':')
+for n in mi_n_neighbors:
+    plt.plot(np.arange(len(grouped)), grouped[('mi_' + str(n) + '_hits', 'mean')], label='mi ' + str(n) + ' neighbors', linewidth=2.0, linestyle='-')
+
 plt.legend()
 plt.xlabel('number of bins ($b$)')
 plt.ylabel('AUC')
@@ -133,6 +134,8 @@ plt.plot(np.arange(len(grouped)), grouped[('eqw_hits', 'mean')], label='EQW binn
 plt.plot(np.arange(len(grouped)), grouped[('eqf_hits', 'mean')], label='EQF binning', linewidth=2.0, linestyle='-.')
 plt.plot(np.arange(len(grouped)), grouped[('kmeans_hits', 'mean')], label='k-means binning', linestyle='--', linewidth=2.0)
 plt.plot(np.arange(len(grouped)), grouped[('greedy_hits', 'mean')], label='greedy binning', linewidth=2.0, linestyle=':')
+for n in mi_n_neighbors:
+    plt.plot(np.arange(len(grouped)), grouped[('mi_' + str(n) + '_hits', 'mean')], label='mi ' + str(n) + ' neighbors', linewidth=2.0, linestyle='-')
 plt.legend()
 plt.xlabel('number of bins ($b$)')
 plt.ylabel('AUC')

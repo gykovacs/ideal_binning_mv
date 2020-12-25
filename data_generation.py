@@ -1,6 +1,18 @@
 import numpy as np
 from binning import *
 
+def unique_binning(t):
+    """
+    Carries out the unique binning for a template
+    
+    Args:
+         t (np.array): a template vector
+        
+    Returns:
+        np.array: the unique binning vector
+    """
+    return np.digitize(t, np.unique(t), right=True)
+
 def generate_t(d, spherical=False):
     """
     Generates a random template
@@ -172,3 +184,8 @@ def generate_A_from_binning(t_binning):
         A (np.array): the projection matrix
     """
     return generate_A_from_S(generate_S_from_binning(t_binning))
+
+def generate_A_from_binning_eff(t_binning):
+    S= generate_S_from_binning(t_binning)
+    _, counts= np.unique(t_binning, return_counts=True)
+    return np.dot(S, np.dot(np.diag(1.0/counts), S.T))
