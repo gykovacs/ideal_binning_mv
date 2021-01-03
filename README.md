@@ -16,10 +16,23 @@ The package contains the following files.
     * ```evaluation.py```: the script generating plots and tables.
     * ```nuv.py```: the implementation of the normalized Unexplained Variance dissimilarity measure and the exact approximations of the various expected values.
     * ```simulation.py```: the script implementing the simulations used in the Tests and Results section of the paper.
+    * ```feature_selection.py```: the codes implementing the feature selection experiment.
     * ```utils/*```: some further utility functions.
-3) Data files:
+3) Notebooks:
+    * ```evaluation_of_simulations.ipynb```: evaluation of the pattern recognition simulations
+    * ```evaluation_of_feature_selection.ipynb```: evaluation of feature selection.
+4) Data files:
     * ```results_general.csv```: all the simulation results for general distortions.
     * ```results_spherical.csv```: all the simulation results for spherical distortions. 
+    * ```feature_selection_results.csv```: r2 scores of the feature selection experiment.
+    * ```feature_selection_rankings.csv```: rankings in the feature selection experiment.
+    * ```feature_selection_runtimes.csv```: runtimes of the feature selection experiment.
+5) Plots:
+    * ```auc_general.pdf```: AUC scores with general distortions.
+    * ```auc_spherical.pdf```: AUC scores with spherical distortions.
+    * ```fit_general.pdf```: alignment of theoretical results and measurements for general distortions.
+    * ```fit_spherical.pdf```: alignment of theoretical results and measurements for spherical distortions.
+    * ```fs_results.pdf```: feature selection results.
 
 Reproducing the results
 ---
@@ -53,21 +66,14 @@ It is assumed that ```git``` and ```Anaconda``` are installed and properly confi
 ```bash
 > python simulation.py
 ```
-8) Execute the ```evaluation.py``` file to generate the plots and tables appearing in the paper
+8) Execute the ```feature_selection.py``` file to generate the plots and tables appearing in the paper
 ```
-> python evaluation.py
+> python feature_selection.py
 ```
+9) Run the notebooks ```evaluation_of_simulations.ipynb``` and ```evaluation_of_feature_selection.ipynb``` to generate the plots and statistical test results.
 
 Remarks
 ---
 
 1) The execution time with the default settings in ```config.py``` is about 10 hours on an average computer.
 2) The codes might run with different package configurations than the ones specified in ```requirements.txt```, however, due to possible changes in the pseudo-number generators, other package configurations might give slightly different results.
-
-Raw simulation results
----
-
-The raw results of the simulations are available for download at the following links:
-
-1) general distortions: https://drive.google.com/file/d/1Y8IOEfRe_WW9NwSUxQjMoBQpRwnmx2gN/view?usp=sharing
-2) spherical distortions: https://drive.google.com/file/d/1VQd3iN6uMyERHXIbrf21epBs7i59T5PF/view?usp=sharing
