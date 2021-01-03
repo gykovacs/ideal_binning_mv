@@ -86,13 +86,7 @@ def eqw_binning(t, n_bins):
     
     t_bins= eqw_bins(t, n_bins)
     t_binning= np.digitize(t, t_bins)
-    #u= np.unique(t)
-    #it= 0
-    #while len(np.unique(t_binning)) != n_bins:
-    #    t_bins[it]= (u[it] + u[it+1])/2.0
-    #    t_bins[(it+1):]= eqw_bins(u[(it+1):], n_bins-(it+1))
-    #    t_binning= np.digitize(t, t_bins)
-    #    it+= 1
+
     return t_binning
 
 class DistortionAlignedBinning:

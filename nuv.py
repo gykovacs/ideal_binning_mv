@@ -18,9 +18,7 @@ def pwc_nuv(t, w, t_binning):
         float: the PWC nUV dissimilarity of t and w
     """
 
-
     # computing the optimal solution of the least squares approximation \hat\beta
-    #hat_beta= np.array([np.mean(w[t_binning == i]) for i in range(max(t_binning) + 1)])
     hat_beta= []
     for i in range(max(t_binning)+1):
         try:
@@ -31,7 +29,6 @@ def pwc_nuv(t, w, t_binning):
             print(np.unique(t_binning))
             raise ValueError("empty slice")
     hat_beta= np.array(hat_beta)
-        
     
     # reconstructing the (S . \hat\beta) vector (the vector approximating w)
     hat_w= hat_beta[t_binning]

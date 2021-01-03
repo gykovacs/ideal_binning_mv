@@ -35,11 +35,11 @@ def generate_t(d, spherical=False):
             if np.random.randint(2) == 0:
                 t[i]= np.random.normal()
             else:
-                t[i]= np.random.normal(loc=2.0)
+                t[i]= np.random.normal(loc=5.0)
     
     t= (t - np.min(t))/(np.max(t) - np.min(t))
     
-    exponent= np.random.randint(1, 4)
+    exponent= np.random.rand()*5 + 1
     
     if np.random.randint(2) == 0:
         t= t**exponent

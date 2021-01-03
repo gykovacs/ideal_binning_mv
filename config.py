@@ -26,7 +26,8 @@ bins=[2, 5, 'square-root', 'sturges-formula', 'rice-rule']
 binning_methods= ['eqw', 'eqf', 'kmeans', 'distortion_aligned']
 
 # mutual information n_neighbors
-mi_n_neighbors_simulation= [3, 7, 11, 21, 31, 41, 51]
+mi_n_neighbors_simulation_general= [3, 7, 11, 21]
+mi_n_neighbors_simulation_spherical= [3, 7, 11, 31, 61, 91]
 mi_n_neighbors_feature_selection= [3, 7, 11, 21, 31]
 
 # feature selection 

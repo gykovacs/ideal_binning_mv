@@ -9,6 +9,8 @@ from binning import *
 from data_generation import *
 from nuv import *
 
+from scipy.stats import entropy
+
 from sklearn.feature_selection import mutual_info_regression
 
 def simulation(spherical=False,
@@ -21,7 +23,8 @@ def simulation(spherical=False,
                bins=bins,
                binning_methods= binning_methods,
                n_trials=n_trials,
-               random_seed=random_seed):
+               random_seed=random_seed,
+               mi_n_neighbors=[2, 5, 7]):
     """
     The function implementing the numerical simulations
 
@@ -36,6 +39,8 @@ def simulation(spherical=False,
         bins (list): numbers of bins or n_bin selection strategies
         binning_methods (list): the names of the binning methods to be used
         n_trials (int): number of trials
+        random_seed (int): the random seed of the simulation
+        mi_n_neighbors (list): the MI n_neighbors parameters to test
     
     Returns:
         pd.DataFrame: the results of the simulation
@@ -59,7 +64,7 @@ def simulation(spherical=False,
         hits[binning]= []
         runtimes[binning]= []
     
-    for m in mi_n_neighbors_simulation:
+    for m in mi_n_neighbors:
         hits['mi_' + str(m)]= []
         runtimes['mi_' + str(m)]= []
 
@@ -134,10 +139,10 @@ def simulation(spherical=False,
                 else:
                     hits[binning_method].append(0)
             
-            for n_neighbors in mi_n_neighbors_simulation:
+            for n_neighbors in mi_n_neighbors:
                 start_time= time.time()    
-                mi_noise= mutual_info_regression(w_noise.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]
-                mi_distorted= mutual_info_regression(w_distorted.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]
+                mi_noise= mutual_info_regression(w_noise.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_noise, return_counts=True)[1]))
+                mi_distorted= mutual_info_regression(w_distorted.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_distorted, return_counts=True)[1]))
                 end_time= time.time()
                 
                 if mi_noise < mi_distorted:
@@ -195,7 +200,7 @@ def simulation(spherical=False,
         results[b + '_distorted']= d_distortion[b]
         results[b + '_hits']= hits[b]
         results[b + '_runtime']= runtimes[b]
-    for m in mi_n_neighbors_simulation:
+    for m in mi_n_neighbors:
         results['mi_' + str(m) + '_hits']= hits['mi_' + str(m)]
         results['mi_' + str(m) + '_runtime']= runtimes['mi_' + str(m)]
     
@@ -206,14 +211,16 @@ def main():
     # General distortions #
     #######################
 
-    results_general= simulation(spherical=False)
+    results_general= simulation(spherical=False, 
+                                mi_n_neighbors=mi_n_neighbors_simulation_general)
     results_general.to_csv(os.path.join(work_dir, 'results_general.csv'), index=False)
 
     #########################
     # Spherical distortions #
     #########################
 
-    results_spherical= simulation(spherical=True)
+    results_spherical= simulation(spherical=True,
+                                  mi_n_neighbors=mi_n_neighbors_simulation_spherical)
     results_spherical.to_csv(os.path.join(work_dir, 'results_spherical.csv'), index=False)
 
 

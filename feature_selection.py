@@ -49,10 +49,12 @@ def pwc_nuv_regression_ttof(X,
         # the covariance matrix is approximated by applying the 
         # specified transformations to the target vector
         tau= np.unique(y)
+        
         C= np.zeros((len(tau), len(tau)))
         rs= np.random.RandomState(random_state)
         n= 0
         tau= (tau - np.min(tau))/(np.max(tau) - np.min(tau))
+        tau= np.log(1 + tau)
         distorted= []
         for k in distortions:
             if k == 'power':
@@ -113,10 +115,8 @@ def pwc_nuv_regression_ttof(X,
         while len(np.unique(y_binning)) < n_bins - it:
             y_binning= y_binning= eqw_binning(y, n_bins-it)
             it= it + 1
-        #assert len(np.unique(y_binning)) == n_bins
     elif binning.startswith('eqf'):
         y_binning= eqf_binning(y, n_bins)
-        #assert len(np.unique(y_binning)) == n_bins
     elif binning.startswith('kmeans'):
         y_binning= kmeans_binning(y, n_bins)
         assert len(np.unique(y_binning)) == n_bins
@@ -157,7 +157,7 @@ def pwc_nuv_regression_ftot(X,
             num_bins_mod= n_bins(X[:,i], num_bins)
             y_tmp= y[:,np.newaxis]
             X_tmp= X[:,i]
-            #print('coordinate ', i, num_bins_mod)
+
             scores.append(pwc_nuv_regression_ttof(X=y_tmp, 
                                                   y=X_tmp, 
                                                   n_bins=num_bins_mod, 
@@ -196,7 +196,7 @@ for d in all_data:
     X= data['data']
     y= data['target']
     
-    if data['name'] in ['residential_building', 'communities', 'ccpp', 'compactiv', 'puma32h', 'laser', 'stock_portfolio_performance', 'diabetes']:
+    if data['name'] in ['residential_building', 'communities', 'ccpp']: #, 'compactiv', 'puma32h', 'laser', 'stock_portfolio_performance', 'diabetes']:
         continue
     
     print("database %s, n: %d, d: %d" % (data['name'], len(X), len(X[0])))
@@ -250,19 +250,9 @@ for d in all_data:
                 scores= pwc_nuv_regression_ttof(X_train, 
                                                 y_train, 
                                                 n_bins=n_bins(y_train, num_bins), 
-                                                #num_bins= num_bins,
                                                 binning=m, 
                                                 random_state=random_seed)
                 
-                
-                scores2= pwc_nuv_regression_ftot(X_train, 
-                                                    y_train, 
-                                                    #n_bins=n_bins(y_train, num_bins), 
-                                                    num_bins= num_bins,
-                                                    binning=m, 
-                                                    random_state=random_seed)
-                scores= (scores + scores2)/2.0
-                #scores= scores2
                 
                 feature_indices= np.array(scores.argsort())
                 scores.sort()
@@ -278,14 +268,12 @@ for d in all_data:
         # iterating through the all subsets of features in according
         # to the ordering implied by the feature scores
         
+        #for i in range(1, min(max(2, int(np.sqrt(len(X[0])))), 10)):
         for i in range(1, len(X[0])):
             scores= []
             for m in all_techniques:
                 # instantiating a regressor
-                #regressor= Ridge(random_state=random_seed, 
-                #                 solver='lsqr')
-                #regressor= LinearRegressor(random_state=5)
-                regressor= RandomForestRegressor(n_estimators=10, max_depth=5, random_state=5)
+                regressor= LinearRegression()
                 
                 # picking the features
                 features= np.array(sorted(all_indices[m][:i]))
@@ -327,41 +315,3 @@ for d in all_data:
 
 pd.DataFrame(all_r2_scores.values(), index=all_r2_scores.keys(), columns=all_techniques).to_csv('feature_selection_results.csv')
 pd.DataFrame([np.mean(all_runtimes, axis=0)], index=[0], columns=all_techniques).to_csv('feature_selection_runtimes.csv')
-
-rankings_pd= pd.DataFrame(all_rankings.values(), index=all_rankings.keys(), columns=all_techniques)
-
-rankings_pd['mi_7'] - rankings_pd['kmeans_square-root']
-
-from scipy.stats import ttest_1samp
-
-ttest_1samp((rankings_pd['mi_3'] - rankings_pd['kmeans_square-root']).values, popmean=0.0)
-
-from scipy.stats import wilcoxon
-
-wilcoxon(rankings_pd['mi_21'], rankings_pd['distortion_aligned_square-root'])
-
-tmp= pd.DataFrame(all_r2_scores.values(), index=all_r2_scores.keys(), columns=all_techniques)
-
-import numpy as np
-wilcoxon(
-np.hstack([tmp['eqw_2'].values, tmp['eqw_5'].values, tmp['eqw_square-root'].values, tmp['eqw_sturges-formula'].values, tmp['eqw_rice-rule'].values]),
-np.hstack([tmp['kmeans_2'].values, tmp['kmeans_5'].values, tmp['kmeans_square-root'].values, tmp['kmeans_sturges-formula'].values, tmp['kmeans_rice-rule'].values])
-)
-
-wilcoxon(tmp['mi_7'].values, tmp['kmeans_5'].values)
-
-tmp['mi_7'] - tmp['kmeans_5']
-
-mi= np.hstack([tmp[c].values for c in tmp.columns if c.startswith('mi')])
-eqw= np.hstack([tmp[c].values for c in tmp.columns if c.startswith('eqw')])
-kmeans= np.hstack([tmp[c].values for c in tmp.columns if c.startswith('kmeans')])
-
-ttest_1samp(mi - kmeans, popmean=0.0)
-
-from scipy.stats import ttest_ind
-
-ttest_ind(mi, kmeans)
-
-np.mean(mi)
-
-np.mean(kmeans)
