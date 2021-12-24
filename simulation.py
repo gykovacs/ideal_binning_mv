@@ -7,11 +7,14 @@ from config import *
 
 from binning import *
 from data_generation import *
-from nuv import *
+from nev import *
 
 from scipy.stats import entropy
 
 from sklearn.feature_selection import mutual_info_regression
+
+import warnings
+warnings.filterwarnings('error')
 
 def simulation(spherical=False,
                d_lower=d_lower,
@@ -71,38 +74,48 @@ def simulation(spherical=False,
     pbar = tqdm.tqdm(total=n_trials)   
     n_tests= 0
     
+    snrs= []
+    
     # repeating the test case n_trials times
     while n_tests < n_trials:
         # random dimensionality
         d= np.random.randint(d_lower, d_upper)
 
-        # random sigma for white noise
-        sigma= sigma_lower + np.random.rand()*(sigma_upper - sigma_lower)
-
-        # random sigma for spherical distribution (used only if spherical = True)
-        sigma_m= sigma_m_lower + np.random.rand()*(sigma_m_upper - sigma_m_lower)
-        
         # generating a template
-        t= generate_t(d, spherical)
+        t= generate_t(d, spherical)*np.random.rand()*10 + np.random.rand()*10
+        
+        P_t= np.mean(t**2)
+        
+        sigma_m= sigma_m_lower + np.random.rand()*(sigma_m_upper - sigma_m_lower)
+        #sigma_m= np.random.rand()*np.sqrt(P_t)
         
         d_tau= len(np.unique(t))
 
-        # generating a covariance structure
+        # generating a covariance structure - this is scaled by sigma_m in both cases
         C= generate_C(t, spherical, sigma_m)
+        
         # generating a mean vector
         distortion_mean= None
         if spherical:
             distortion_mean= generate_tau(t)
         else:
-            distortion_mean= np.random.normal(size=len(C))
+            distortion_mean= np.random.normal(size=len(C)).cumsum()
+            distortion_mean= distortion_mean/np.max(distortion_mean)
+            #distortion_mean= np.array(sorted(np.random.normal(size=len(C))))
         cross_product= C + np.outer(distortion_mean, distortion_mean)
         A= None
+        
+        # random sigma for white noise
+        sigma= sigma_lower + np.random.rand()*(sigma_upper - sigma_lower)
+        #sigma= np.random.rand()*np.sqrt(np.mean(distortion_mean**2))*5
         
         # generating a noisy window
         w_noise= generate_noisy_window(d, sigma)
 
         # generating a distorted template
-        w_distorted= generate_distorted_t(t, C, distortion_mean, sigma)
+        w_distorted, snr= generate_distorted_t(t, C, distortion_mean, sigma)
+        
+        snrs.append(snr)
         
         for b in bins:
             # determining the true number of bins
@@ -124,8 +137,8 @@ def simulation(spherical=False,
                     A= generate_A_from_binning(t_binning)
                     
                 binnings.append(t_binning)
-                mtm_noise= pwc_nuv(t, w_noise, binnings[i])
-                mtm_distorted= pwc_nuv(t, w_distorted, binnings[i])
+                mtm_noise= pwc_nev(t, w_noise, binnings[i])
+                mtm_distorted= pwc_nev(t, w_distorted, binnings[i])
                 end_time= time.time()
                 
                 # record the dissimilarity scores
@@ -134,19 +147,22 @@ def simulation(spherical=False,
                 runtimes[binning_method].append(end_time - start_time)
                 
                 # record the hit for pattern recognition
-                if mtm_noise > mtm_distorted:
+                if mtm_noise <= mtm_distorted:
                     hits[binning_method].append(1)
                 else:
                     hits[binning_method].append(0)
             
             for n_neighbors in mi_n_neighbors:
                 start_time= time.time()    
-                mi_noise= mutual_info_regression(w_noise.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_noise, return_counts=True)[1]))
-                mi_distorted= mutual_info_regression(w_distorted.reshape(-1, 1), t, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_distorted, return_counts=True)[1]))
+                mi_noise= mutual_info_regression(t.reshape(-1, 1), w_noise, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_noise, return_counts=True)[1]))
+                mi_distorted= mutual_info_regression(t.reshape(-1, 1), w_distorted, n_neighbors=n_neighbors, random_state=5)[0]/(entropy(1.0/np.unique(w_distorted, return_counts=True)[1]))
                 end_time= time.time()
                 
-                if mi_noise < mi_distorted:
-                    hits['mi_' + str(n_neighbors)].append(1)
+                if mi_noise <= mi_distorted:
+                    if mi_noise == mi_distorted:
+                        hits['mi_' + str(n_neighbors)].append(np.random.randint(2))
+                    else:
+                        hits['mi_' + str(n_neighbors)].append(1)
                 else:
                     hits['mi_' + str(n_neighbors)].append(0)
                     
@@ -170,11 +186,11 @@ def simulation(spherical=False,
             ids.append(n_tests)
         
             # record the exact values
-            exact_noise.append(exact_nuv_noise(d, b_mod))
-            exact_distortion.append(exact_nuv_general(cross_product, t, A, sigma, b_mod))
+            exact_noise.append(exact_nev_noise(d, b_mod))
+            exact_distortion.append(exact_nev_general(cross_product, t, A, sigma, b_mod))
 
             if spherical:
-                exact_kmeans.append(exact_nuv_spherical(t, A, sigma, sigma_m, b_mod))
+                exact_kmeans.append(exact_nev_spherical(t, A, sigma, sigma_m, b_mod))
             else:
                 exact_kmeans.append(-1)
         
@@ -182,6 +198,9 @@ def simulation(spherical=False,
         pbar.update(1)
         
     pbar.close()
+    
+    print('snr min max', np.min(snrs), np.max(snrs))
+    print('snr histogram', np.histogram(snrs, bins=20))
     
     results= pd.DataFrame({'d': ds,
                            'b': bs,
@@ -213,7 +232,7 @@ def main():
 
     results_general= simulation(spherical=False, 
                                 mi_n_neighbors=mi_n_neighbors_simulation_general)
-    results_general.to_csv(os.path.join(work_dir, 'results_general.csv'), index=False)
+    results_general.to_csv(os.path.join(work_dir, 'results_general2.csv'), index=False)
 
     #########################
     # Spherical distortions #
@@ -221,7 +240,7 @@ def main():
 
     results_spherical= simulation(spherical=True,
                                   mi_n_neighbors=mi_n_neighbors_simulation_spherical)
-    results_spherical.to_csv(os.path.join(work_dir, 'results_spherical.csv'), index=False)
+    results_spherical.to_csv(os.path.join(work_dir, 'results_spherical2.csv'), index=False)
 
 
 if __name__ == "__main__":

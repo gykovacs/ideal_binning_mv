@@ -205,10 +205,19 @@ class DistortionAlignedBinning:
             
             C_square_change= np.sum(np.dot(np.dot((n_tau_change), C_square), (n_tau_change)))
             
-            self.term_num_change_i= -(2*np.sum(np.dot(n_tau_sides,np.dot(C_sides.T,n_tau_change))) + C_square_change)
-            self.term_denom_change_i= -np.sum(n_tau_change)
+            if len(n_tau_sides) > 0 and len(n_tau_change) > 0:
+                self.term_num_change_i= -(2*np.sum(np.dot(n_tau_sides,np.dot(C_sides.T,n_tau_change))) + C_square_change)
+            else:
+                self.term_num_change_i= 0.0
+            if len(n_tau_change) > 0:
+                self.term_denom_change_i= -np.sum(n_tau_change)
+            else:
+                self.term_denom_change_i= 0.0
             self.term_denom_change_im1= -self.term_denom_change_i
-            self.term_num_change_im1= 2*np.sum(np.dot(n_tau_extension.T, np.dot(n_tau_change, C_extension))) + C_square_change
+            if len(n_tau_extension) > 0 and len(n_tau_change) > 0:
+                self.term_num_change_im1= 2*np.sum(np.dot(n_tau_extension.T, np.dot(n_tau_change, C_extension))) + C_square_change
+            else:
+                self.term_num_change_im1= 0.0
             
             new_objective= new_objective - self.terms_num[self.bin_idx]/self.terms_denom[self.bin_idx]
             if not self.bin_idx == 0:
@@ -235,10 +244,19 @@ class DistortionAlignedBinning:
             
             C_square_change= np.sum(np.dot(np.dot((n_tau_change), C_square), (n_tau_change)))
             
-            self.term_num_change_i= -(2*np.sum(np.dot(n_tau_sides, np.dot(C_sides.T,n_tau_change))) + C_square_change)
-            self.term_denom_change_i= -np.sum(n_tau_change)
+            if len(n_tau_sides) > 0.0 and len(n_tau_change) > 0.0:
+                self.term_num_change_i= -(2*np.sum(np.dot(n_tau_sides, np.dot(C_sides.T,n_tau_change))) + C_square_change)
+            else:
+                self.term_num_change_i= 0.0
+            if len(n_tau_change) > 0.0:
+                self.term_denom_change_i= -np.sum(n_tau_change)
+            else:
+                self.term_denom_change_i= 0.0
             self.term_denom_change_ip1= -self.term_denom_change_i
-            self.term_num_change_ip1= 2*np.sum(np.dot(n_tau_extension.T,np.dot(n_tau_change, C_extension))) + C_square_change
+            if len(n_tau_extension) > 0.0 and len(n_tau_change) > 0.0:
+                self.term_num_change_ip1= 2*np.sum(np.dot(n_tau_extension.T,np.dot(n_tau_change, C_extension))) + C_square_change
+            else:
+                self.term_num_change_ip1= 0.0
             
             new_objective= new_objective - self.terms_num[self.bin_idx]/self.terms_denom[self.bin_idx]
             if not self.bin_idx == self.n_bins - 1:

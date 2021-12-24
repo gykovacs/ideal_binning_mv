@@ -12,12 +12,15 @@ d_lower=100
 d_upper=1000
 
 # lower and upper bounds of the white noise standard deviation
-sigma_lower=0.1
-sigma_upper=2.0
+sigma_lower=0.0
+# good
+#sigma_upper=5.0
+sigma_upper=5.0
 
 # lower and upper bounds of the spherical distortion standard deviation
-sigma_m_lower=0.1
-sigma_m_upper=2.0
+sigma_m_lower=0.0
+# good
+sigma_m_upper=1.0
 
 # number of bins
 bins=[2, 5, 'square-root', 'sturges-formula', 'rice-rule']

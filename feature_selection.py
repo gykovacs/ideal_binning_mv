@@ -7,7 +7,7 @@ from config import *
 
 from binning import *
 from data_generation import *
-from nuv import *
+from nev import *
 
 from sklearn.feature_selection import mutual_info_regression
 from sklearn.ensemble import RandomForestRegressor
@@ -18,7 +18,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 import mldb.regression as reg
 
-def pwc_nuv_regression_ttof(X, 
+def pwc_nev_regression_ttof(X, 
                        y, 
                        n_bins,
                        binning= 'distortion_aligned',
@@ -30,7 +30,7 @@ def pwc_nuv_regression_ttof(X,
                                     },
                        random_state=random_seed):
     """
-    PWC NUV regression target to feature function
+    PWC nev regression target to feature function
     
     Args:
         X (np.array): array of features
@@ -41,7 +41,7 @@ def pwc_nuv_regression_ttof(X,
                                 the covariance matrix
         random_state (int): the random seed to be used
     Returns:
-        np.array: the PWC nUV scores of the features
+        np.array: the PWC nev scores of the features
     """
 
     if binning.startswith('distortion_aligned'):
@@ -123,11 +123,11 @@ def pwc_nuv_regression_ttof(X,
     
     results= []
     for i in range(len(X[0])):
-        results.append(pwc_nuv(y, X[:,i], y_binning))
+        results.append(pwc_nev(y, X[:,i], y_binning))
         
     return np.array(results)
 
-def pwc_nuv_regression_ftot(X, 
+def pwc_nev_regression_ftot(X, 
                        y, 
                        num_bins,
                        binning= 'distortion_aligned',
@@ -137,7 +137,7 @@ def pwc_nuv_regression_ftot(X,
                                     },
                        random_state=random_seed):
     """
-    PWC nUV regression feature to target scores
+    PWC nev regression feature to target scores
     
     Args:
         X (np.array): array of features
@@ -148,7 +148,7 @@ def pwc_nuv_regression_ftot(X,
                                 the covariance matrix
         random_state (int): the random seed to be used
     Returns:
-        np.array: the PWC nUV scores of the features
+        np.array: the PWC nev scores of the features
     """
     scores= []
     for i in range(len(X[0])):
@@ -158,7 +158,7 @@ def pwc_nuv_regression_ftot(X,
             y_tmp= y[:,np.newaxis]
             X_tmp= X[:,i]
 
-            scores.append(pwc_nuv_regression_ttof(X=y_tmp, 
+            scores.append(pwc_nev_regression_ttof(X=y_tmp, 
                                                   y=X_tmp, 
                                                   n_bins=num_bins_mod, 
                                                   binning=binning, 
@@ -183,12 +183,12 @@ all_r2_scores= {}
 # setting up the identifiers of the feature selection methods
 # to be used
 mi_techniques= ['mi_' + str(n) for n in mi_n_neighbors_feature_selection]
-nuv_techniques= []
+nev_techniques= []
 for b in bins:
     for m in binning_methods:
-        nuv_techniques.append(m + '_' + str(b))
+        nev_techniques.append(m + '_' + str(b))
 
-all_techniques= mi_techniques + nuv_techniques
+all_techniques= mi_techniques + nev_techniques
 
 # iterating through all databases
 for d in all_data:
@@ -234,12 +234,12 @@ for d in all_data:
                                                y_train, 
                                                random_state=random_seed,
                                                n_neighbors=n_neighbors)
-                feature_indices= np.array(scores.argsort()[::-1])
+                feature_indices= np.array(scores.argsort())
                 scores.sort()
-                feature_scores= scores[::-1]
+                feature_scores= scores
                 end= time.time()
             else:
-                # determining the PWC nUV feature scores
+                # determining the PWC nev feature scores
                 num_bins= m.split('_')[-1]
                 try:
                     num_bins= int(num_bins)
@@ -247,7 +247,7 @@ for d in all_data:
                     pass
                 start= time.time()
                 
-                scores= pwc_nuv_regression_ttof(X_train, 
+                scores= pwc_nev_regression_ttof(X_train, 
                                                 y_train, 
                                                 n_bins=n_bins(y_train, num_bins), 
                                                 binning=m, 

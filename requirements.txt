@@ -6,7 +6,7 @@ jupyter-client
 jupyter-core
 kmeans1d
 matplotlib
--e git+git@github.com:gykovacs/mldb.git@0782df2c17965f16eedbe54688e6dc4f538ef1fa#egg=mldb
+git+git://github.com/gykovacs/mldb.git@master#egg=mldb
 numpy
 openpyxl
 pandas
@@ -21,3 +21,4 @@ tqdm
 traitlets
 wcwidth
 wheel
+kmeans1d

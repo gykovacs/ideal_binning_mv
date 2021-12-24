@@ -13,7 +13,7 @@ def unique_binning(t):
     """
     return np.digitize(t, np.unique(t), right=True)
 
-def generate_t(d, spherical=False):
+def generate_t(d, spherical=False, gamma=True):
     """
     Generates a random template
     
@@ -36,15 +36,23 @@ def generate_t(d, spherical=False):
                 t[i]= np.random.normal()
             else:
                 t[i]= np.random.normal(loc=5.0)
+    n_components= np.random.randint(1, 10)
+    
+    locations= np.random.random(n_components)*10
+    
+    t= np.zeros(d)
+    for i in range(d):
+        t[i]= np.random.normal(loc=locations[np.random.randint(n_components)])
     
     t= (t - np.min(t))/(np.max(t) - np.min(t))
     
-    exponent= np.random.rand()*5 + 1
-    
-    if np.random.randint(2) == 0:
-        t= t**exponent
-    else:
-        t= t**(1.0/exponent)
+    if gamma:
+        exponent= np.random.rand()*3 + 1
+        
+        if np.random.randint(2) == 0:
+            t= t**exponent
+        else:
+            t= t**(1.0/exponent)
     
     if spherical:
         return t
@@ -158,8 +166,14 @@ def generate_distorted_t(t, C, distortion_mean, sigma):
     S_tau = generate_S_tau(t)
     
     m= np.random.multivariate_normal(mean= distortion_mean, cov=C)
+    Sm= np.dot(S_tau, m)
+    
+    #sigma= np.random.rand()*np.sqrt(np.mean((Sm - np.min(Sm))**2))*2
+    
     noise= generate_noisy_window(len(t), sigma)
-    return np.dot(S_tau, m) + noise
+    
+    snr= 10*np.log10(np.mean(((Sm - np.min(Sm))**2))/sigma**2)
+    return Sm + noise, snr
 
 def generate_A_from_S(S):
     """
