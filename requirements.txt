@@ -6,7 +6,6 @@ jupyter-client
 jupyter-core
 kmeans1d
 matplotlib
-git+git://github.com/gykovacs/mldb.git@master#egg=mldb
 numpy
 openpyxl
 pandas
